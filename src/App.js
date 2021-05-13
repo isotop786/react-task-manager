@@ -3,6 +3,7 @@ import './App.css';
 import Header from './components/Header' 
 import Task from './components/Task'
 import {useState} from 'react'
+import AddTask from './components/AddTask'
 
 function App() {
 
@@ -20,7 +21,8 @@ function App() {
                       text:'Meeting with client',
                       day:'Feb 5th at 2:30pm',
                       reminder:true,
-                      onProgress:false
+                      onProgress:false,
+                      high:false
                   }
                   ,
                   {
@@ -28,17 +30,30 @@ function App() {
                       text:'Hair cuts and growming',
                       day:'Feb 5th at 2:30pm',
                       reminder:false,
-                      onProgress:false
+                      onProgress:false,
+                      high:true
                   },
                   {
                       id:4,
                       text:'Meeting classmate',
                       day:'Feb 5th at 2:30pm',
                       reminder:true,
-                      onProgress:false
+                      onProgress:false,
+                      high:false
                   }
               ]
   )
+
+  // add task 
+  const addTask = (ts)=>{
+    const id = Math.floor(Math.random())
+
+    const newTask = {id, ...ts}
+    setTask([...task,newTask])
+
+    console.log(ts)
+  }
+
 
   const deleteTask = (id)=>{
     // console.log('task deleted ',id)
@@ -66,6 +81,8 @@ function App() {
   return (
     <div className="container">
       <Header title="Task Manager"/>
+
+      <AddTask addTask={addTask}/>
 
     {task.length > 0 ?  <Task  tasks={task} onDelete={deleteTask}
       onToggle={onToggle} onProgress={onProgress}
