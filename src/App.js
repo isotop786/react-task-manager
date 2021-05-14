@@ -1,69 +1,101 @@
-import logo from './logo.svg';
+import axios from 'axios'
 import './App.css';
 import Header from './components/Header' 
 import Task from './components/Task'
-import {useState} from 'react'
+import {useState,useEffect} from 'react'
 import AddTask from './components/AddTask'
 
 function App() {
 
-  const [task,setTask] = useState(
-    [
-                  {
-                      id:1,
-                      text:'Tasks comming from global state',
-                      day:'Feb 5th at 2:30pm',
-                      reminder:true,
-                      onProgress:false
-                  },
-                  {
-                      id:2,
-                      text:'Meeting with client',
-                      day:'Feb 5th at 2:30pm',
-                      reminder:true,
-                      onProgress:false,
-                      high:false
-                  }
-                  ,
-                  {
-                      id:3,
-                      text:'Hair cuts and growming',
-                      day:'Feb 5th at 2:30pm',
-                      reminder:false,
-                      onProgress:false,
-                      high:true
-                  },
-                  {
-                      id:4,
-                      text:'Meeting classmate',
-                      day:'Feb 5th at 2:30pm',
-                      reminder:true,
-                      onProgress:false,
-                      high:false
-                  }
-              ]
-  )
+  const [task,setTask] = useState([])
+
+  const [showAdd, setShowAdd] = useState(false)
+
+    useEffect(()=>{
+      // axios.get('http://localhost:3000/tasks')
+      // .then((res)=>{
+      //   // console.log(res)
+      //   setTask(res.data)
+      // })
+
+      const getTasks = async ()=>{
+        const taskFromServer = await fetchTask()
+        setTask(taskFromServer)
+      }
+
+      getTasks()
+
+      console.log(task)
+    },[])
+
+    const fetchTask = async ()=>{
+      const res = await fetch('http://localhost:3000/tasks')
+      const data = await res.json()
+
+      return data
+    }
+
+  // fetching single task
+  const fetchSingleTask = async (id)=>{
+    const res = await fetch(`http://localhost:3000/tasks/${id}`)
+
+    const data = await res.json()
+
+    return data
+  }
+
+
 
   // add task 
-  const addTask = (ts)=>{
-    const id = Math.floor(Math.random())
+  const addTask =  (ts)=>{
+    // const id = Math.floor(Math.random()*10000+1)
 
-    const newTask = {id, ...ts}
-    setTask([...task,newTask])
+    // const newTask = {id, ...ts}
+    // setTask([...task,newTask])
 
-    console.log(ts)
+    axios.post('http://localhost:3000/tasks',ts)
+    .then(res=>{ console.log(res)
+    
+      setTask([...task, ts])
+    
+    })
+    .catch(err => console.log(err))
+
+    console.log(task)
   }
 
 
   const deleteTask = (id)=>{
     // console.log('task deleted ',id)
+    axios.delete(`http://localhost:3000/tasks/${id}`)
+    .then(res=>console.log(res))
+    .catch(err=>console.log(err))
+
     setTask(task.filter((task) => task.id !== id))
   }
 
-  const onToggle = (id)=>{
+  const onToggle = async (id)=>{
     // console.log(id)
+    const toggleTask = await fetchSingleTask(id)
+
+    const updateTask = await {...toggleTask, reminder: !toggleTask.reminder}
+
+    const res = await fetch(`http://localhost:3000/tasks/${id}`,
+      {
+        method:'PUT',
+        headers:{
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateTask)
+      }
+    )
+
+    const data = await res.json();
+
+
+
     setTask(task.map((t)=> t.id == id ? {
-      ...t,reminder:!t.reminder
+      ...t,reminder:data.reminder
     }: t))
   }
 
@@ -80,9 +112,9 @@ function App() {
 
   return (
     <div className="container">
-      <Header title="Task Manager"/>
+      <Header title="Task Manager" showAdd={showAdd}  onAdd={()=> setShowAdd(!showAdd)} />
 
-      <AddTask addTask={addTask}/>
+     { showAdd && <AddTask addTask={addTask}/>}
 
     {task.length > 0 ?  <Task  tasks={task} onDelete={deleteTask}
       onToggle={onToggle} onProgress={onProgress}

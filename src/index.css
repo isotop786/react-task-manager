@@ -62,7 +62,7 @@ body {
 }
 
 .task.reminder {
-  border-right: 5px solid red;
+  border-right: 5px solid rgb(223, 6, 60);
 }
 
 .task.progress {
